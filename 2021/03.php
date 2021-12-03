@@ -1,21 +1,31 @@
 <?php
-$list = file_get_contents("03/test.txt");
+$list = file_get_contents("03/input.txt");
 
 $lines = explode("\n", $list);
-$lenght=0;
 $first_count=0;
-$column_counters=[];
-$gamma=[];
-$epsilon=[];
 $elaborations = elaborate($lines);
 $gamma = $elaborations["greaters"];
 $epsilon = $elaborations["lowers"];
-$gamma_dec= bindec(implode("",$gamma));
-$epsilon_dec= bindec(implode("",$epsilon));
+$gamma_dec= bindecArray($gamma);
+$epsilon_dec= bindecArray($epsilon);
 
 $first_count = $gamma_dec*$epsilon_dec;
 
 echo $first_count."\r\n";
+
+
+$second_count=0;
+$oxygen = $lines;
+clean($oxygen, "greaters");
+$oxygen_dec= bindecArray($oxygen);
+
+$CO2_scrubber = $lines;
+clean($CO2_scrubber, "lowers");
+$CO2_scrubber_dec= bindecArray($CO2_scrubber);
+
+$second_count=$oxygen_dec * $CO2_scrubber_dec;
+echo $second_count."\r\n";
+
 
 function elaborate($lines)
 {
@@ -45,45 +55,33 @@ function elaborate($lines)
     }
     foreach ($column_counters as $column_counter_key => $column_counter) {
         if($column_counter["0"]>$column_counter["1"]){
-            $gamma[$column_counter_key]="0";
-            $epsilon[$column_counter_key]="1";
+            $greaters[$column_counter_key]="0";
+            $lowers[$column_counter_key]="1";
             continue;
         }
-        $gamma[$column_counter_key]="1";
-        $epsilon[$column_counter_key]="0";
+        $greaters[$column_counter_key]="1";
+        $lowers[$column_counter_key]="0";
     }
     return [
-        'greaters' => $gamma,
-        'lowers' => $epsilon,
+        'greaters' => $greaters,
+        'lowers' => $lowers,
         'couters' => $column_counters,
     ];
 }
 
-// function cmp($a, $b) {
-//     if ($a == $b) {
-//         return 0;
-//     }
-//     return ($a < $b) ? -1 : 1;
-// }
+function bindecArray(array $binArray){
+    return bindec(implode("",$binArray));
+}
 
-// $second_count=0;
-// foreach( $lines as $key => $line ){
-//     if(empty($line)) continue;
-//     $mod=0;
-//     $numbers = preg_split('/\s+/', $line);
-//     usort($numbers, "cmp");
-//     $lenght = count($numbers);
-//     foreach ($numbers as $key => $number) {
-//         if(empty($number))continue;
-//         $number=(int)$number;
-//         for ($i=$key+1; $i < $lenght; $i++) {
-//             if($numbers[$i]%$number==0){
-//                 $mod=$numbers[$i]/$number;
-//                 continue 2;
-//             }
-//         }
-//     }
-//     $second_count += $mod;
-
-// }
-// echo $second_count."\r\n";
+function clean (array &$to_clean, string $cleaner){
+    $lenght = strlen($to_clean[0]);
+    for ($i=0; $i < $lenght ; $i++) {
+        $elaborations = elaborate($to_clean);
+        foreach($to_clean as $key => $line){
+            $bool = (int)substr($line, $i,1);
+            if($bool==(int)$elaborations[$cleaner][$i]) continue;
+            unset($to_clean[$key]);
+        }
+        if(count($to_clean)==1) return;
+    }
+}
