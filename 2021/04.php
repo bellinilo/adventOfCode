@@ -2,8 +2,12 @@
 $list = file_get_contents("04/input.txt");
 $set = prepareSet($list);
 foreach ($set["calls"] as $call_key => $call) {
-    call($call, $set["sheets"]);
-    $winner_sheets = checkSheets($set["sheets"]);
+    foreach ($set["sheets"] as $sheet_key => &$sheet) {
+        call($call, $sheet);
+        if (checkSheets($sheet)) {
+            $winner_sheets[] = $sheet;
+        }
+    }
     if(!empty($winner_sheets)){
         $winner_sheet_value=calculateWinner($winner_sheets[0]);
         $first_count = $winner_sheet_value * $call;
@@ -33,30 +37,27 @@ function sheetify($block){
     return $sheet;
 }
 
-function call($call, &$sheets){
-    foreach ($sheets as $sheet_key => $sheet) {
-        foreach ($sheet["lines"] as $sheet_line_key => $sheet_line) {
-            foreach ($sheet_line as $sheet_line_number_key => $sheet_line_number) {
-                if($sheet_line_number == $call){
-                    $sheets[$sheet_key]["row_calls"][$sheet_line_key][$sheet_line_number_key] = $sheet_line_number;
-                    $sheets[$sheet_key]["col_calls"][$sheet_line_number_key][$sheet_line_key] = $sheet_line_number;
-                }
+function call($call, &$sheet){
+    foreach ($sheet["lines"] as $sheet_line_key => $sheet_line) {
+        foreach ($sheet_line as $sheet_line_number_key => $sheet_line_number) {
+            if($sheet_line_number == $call){
+                $sheet["row_calls"][$sheet_line_key][$sheet_line_number_key] = $sheet_line_number;
+                $sheet["col_calls"][$sheet_line_number_key][$sheet_line_key] = $sheet_line_number;
             }
         }
     }
 }
 
-function checkSheets(&$sheets){
-    foreach ($sheets as $sheet_key => $sheet) {
-        if(!array_key_exists("row_calls", $sheet)) continue;
-        if(!array_key_exists("col_calls", $sheet)) continue;
-        if (checkSheet($sheet["row_calls"]) ||
-            checkSheet($sheet["col_calls"])){
-            $results[] = $sheet;
-        }
+function checkSheets(&$sheet){
+    if(!array_key_exists("row_calls", $sheet)){
+        return false;
     }
-    if (!empty($results)) {
-        return $results;
+    if (!array_key_exists("col_calls", $sheet)) {
+        return false;
+    }
+    if (checkSheet($sheet["row_calls"]) ||
+        checkSheet($sheet["col_calls"])) {
+        return true;
     }
     return false;
 }
