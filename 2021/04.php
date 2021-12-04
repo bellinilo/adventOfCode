@@ -15,7 +15,25 @@ foreach ($set["calls"] as $call_key => $call) {
     }
 }
 
-echo $first_count;
+echo $first_count."\r\n";
+
+$set2 = prepareSet($list);
+foreach ($set2["calls"] as $call_key => $call) {
+    foreach ($set2["sheets"] as $sheet_key => &$sheet) {
+        call($call, $sheet);
+        if(checkSheets($sheet)){
+            $loser_sheet = $sheet;
+            unset($set2["sheets"][$sheet_key]);
+        }
+        if(empty($set2["sheets"])){
+            $loser_sheet_value=calculateWinner($loser_sheet);
+            $second_count = $loser_sheet_value * $call;
+            break;
+        }
+    }
+}
+
+echo $second_count;
 
 function prepareSet($list){
     $blocks = explode("\n\n", $list);
